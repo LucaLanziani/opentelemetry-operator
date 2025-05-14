@@ -4,16 +4,15 @@
 package v1beta1
 
 import (
-	"bytes"
 	"encoding/json"
 	"sort"
 
 	"dario.cat/mergo"
 	"github.com/go-logr/logr"
 	otelConfig "go.opentelemetry.io/contrib/otelconf/v0.3.0"
-	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"sigs.k8s.io/yaml"
 
 	"github.com/open-telemetry/opentelemetry-operator/internal/components"
 	"github.com/open-telemetry/opentelemetry-operator/internal/components/exporters"
@@ -381,13 +380,11 @@ func (c *Config) GetReadinessProbe(logger logr.Logger) (*corev1.Probe, error) {
 
 // Yaml encodes the current object and returns it as a string.
 func (c *Config) Yaml() (string, error) {
-	var buf bytes.Buffer
-	yamlEncoder := yaml.NewEncoder(&buf)
-	yamlEncoder.SetIndent(2)
-	if err := yamlEncoder.Encode(&c); err != nil {
+	y, err := yaml.Marshal(c)
+	if err != nil {
 		return "", err
 	}
-	return buf.String(), nil
+	return string(y), nil
 }
 
 // Returns null objects in the config.

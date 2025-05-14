@@ -14,7 +14,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	go_yaml "gopkg.in/yaml.v3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
@@ -98,9 +97,9 @@ func TestConfigFiles_go_yaml(t *testing.T) {
 			require.NoError(t, err)
 
 			cfg := &Config{}
-			err = go_yaml.Unmarshal(collectorYaml, cfg)
+			err = yaml.Unmarshal(collectorYaml, cfg)
 			require.NoError(t, err)
-			yamlCfg, err := go_yaml.Marshal(cfg)
+			yamlCfg, err := yaml.Marshal(cfg)
 			require.NoError(t, err)
 
 			require.NoError(t, err)
@@ -114,7 +113,7 @@ func TestNullObjects_go_yaml(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := &Config{}
-	err = go_yaml.Unmarshal(collectorYaml, cfg)
+	err = yaml.Unmarshal(collectorYaml, cfg)
 	require.NoError(t, err)
 
 	nullObjects := cfg.nullObjects()
@@ -167,30 +166,30 @@ func TestConfigYaml(t *testing.T) {
 	yamlCollector, err := cfg.Yaml()
 	require.NoError(t, err)
 
-	const expected = `receivers:
-  otlp: null
+	const expected = `connectors:
+  con: magic
 exporters:
   otlp/exporter: null
-processors:
-  modify_2000: enabled
-connectors:
-  con: magic
 extensions:
   addon: option1
+processors:
+  modify_2000: enabled
+receivers:
+  otlp: null
 service:
   extensions:
-    - addon
-  telemetry:
-    insights: yeah!
+  - addon
   pipelines:
     traces:
       exporters:
-        - otlp/exporter
-        - con
+      - otlp/exporter
+      - con
       processors:
-        - modify_2000
+      - modify_2000
       receivers:
-        - otlp
+      - otlp
+  telemetry:
+    insights: yeah!
 `
 
 	assert.Equal(t, expected, yamlCollector)
@@ -201,7 +200,7 @@ func TestGetTelemetryFromYAML(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := &Config{}
-	err = go_yaml.Unmarshal(collectorYaml, cfg)
+	err = yaml.Unmarshal(collectorYaml, cfg)
 	require.NoError(t, err)
 	telemetry := &Telemetry{
 		Metrics: MetricsConfig{
@@ -217,7 +216,7 @@ func TestGetTelemetryFromYAMLIsNil(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := &Config{}
-	err = go_yaml.Unmarshal(collectorYaml, cfg)
+	err = yaml.Unmarshal(collectorYaml, cfg)
 	require.NoError(t, err)
 	assert.Nil(t, cfg.Service.GetTelemetry())
 }
@@ -536,7 +535,7 @@ func TestConfig_GetEnabledComponents(t *testing.T) {
 			require.NoError(t, err)
 
 			c := &Config{}
-			err = go_yaml.Unmarshal(collectorYaml, c)
+			err = yaml.Unmarshal(collectorYaml, c)
 			require.NoError(t, err)
 			assert.Equalf(t, tt.want, c.GetEnabledComponents(), "GetEnabledComponents()")
 		})
@@ -678,7 +677,7 @@ func TestConfig_GetReceiverPorts(t *testing.T) {
 			require.NoError(t, err)
 
 			c := &Config{}
-			err = go_yaml.Unmarshal(collectorYaml, c)
+			err = yaml.Unmarshal(collectorYaml, c)
 			require.NoError(t, err)
 			ports, err := c.GetReceiverPorts(logr.Discard())
 			if tt.wantErr {
@@ -747,7 +746,7 @@ func TestConfig_GetExporterPorts(t *testing.T) {
 			require.NoError(t, err)
 
 			c := &Config{}
-			err = go_yaml.Unmarshal(collectorYaml, c)
+			err = yaml.Unmarshal(collectorYaml, c)
 			require.NoError(t, err)
 			ports, err := c.GetExporterPorts(logr.Discard())
 			if tt.wantErr {
